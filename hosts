@@ -1,0 +1,15 @@
+[master]
+192.168.44.2
+
+[worker]
+192.168.44.3
+
+[cluster:children]
+master
+worker
+
+[cluster:vars]
+ansible_pass=vagrant
+ansible_user=vagrant
+# ansible_ssh_pass=vagrant
+# ansible_ssh_user=vagrant
