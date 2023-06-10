@@ -1,0 +1,82 @@
+- name: "Setup Docker-Compose with Ansible"
+  hosts: master
+  remote_user: vagrant
+  vars:
+    docker_remote_user: vagrant
+  become: true
+  tasks:
+    - name: "Update"
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: "Install Docker Prerequisite Packages"
+      apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      loop:
+        - ca-certificates
+        - curl
+        - gnupg
+    - name: "Change Keyrings Permission"
+      shell: "install -m 0755 -d /etc/apt/keyrings"
+    - name: "Download Docker GPG Key"
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.gpg_armored
+    - name: "De-Armor Docker GPG Key"
+      shell:  gpg --dearmor <  /etc/apt/keyrings/docker.gpg_armored > /etc/apt/keyrings/docker.gpg
+      # no_log: true
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+    - name: "Add Docker Repository"
+      shell: 'echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null'
+    - name: "Update"
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: "Install Docker Engine"
+      apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+    - name: "Create docker Group"
+      group:
+        name: docker
+        state: present
+    - name: "Add User to docker Group"
+      ansible.builtin.user:
+        name: "{{ docker_remote_user }}"
+        groups: docker
+        append: true
+      register: add_to_docker_group_result
+    - name: Include Reset Connection Tasks
+      ansible.builtin.include_tasks: reset-connection.yml
+      when: add_to_docker_group_result.changed == true
+    - name: "Start and Enable Docker Service"
+      service:
+        name: docker
+        state: started
+        enabled: yes
+    - name: "Get uname -s"
+      command: "uname -s"
+      register: uname_s_result
+    - name: "Get uname -m"
+      command: "uname -m"
+      register: uname_m_result
+    - name: "Save Variables"
+      set_fact:
+        uname_s: "{{ uname_s_result.stdout }}"
+        uname_m: "{{ uname_m_result.stdout }}"
+    - name: "Download Docker-Compose"
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-{{ uname_s }}-{{ uname_m }}"
+        dest: /usr/local/bin/docker-compose
+    - name: "Give Executable Permission to Docker-Compose"
+      file: dest=/usr/local/bin/docker-compose mode=+x
