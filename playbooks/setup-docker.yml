@@ -1,0 +1,45 @@
+- name: "Setup Docker Engine with Ansible"
+  hosts: worker
+  remote_user: vagrant
+  vars:
+    docker_remote_user: vagrant
+  become: true
+  tasks:
+    - name: "Install Docker Prerequisite Package"
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - yum-utils
+    - name: "Add Docker Repository"
+      shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    - name: "Install Docker Engine"
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+    - name: "Create docker Group"
+      group:
+        name: docker
+        state: present
+    - name: "Add User to docker Group"
+      ansible.builtin.user:
+        name: "{{ docker_remote_user }}"
+        groups: docker
+        append: true
+      register: add_to_docker_group_result
+    - name: Include Reset Connection Tasks
+      ansible.builtin.include_tasks: reset-connection.yml
+      when: add_to_docker_group_result.changed == true
+    - name: "Start and Enable Docker Service"
+      service:
+        name: docker
+        state: started
+        enabled: yes
+    - name: "Manage Docker as A Non-Root User"
+      shell: usermod -aG docker $USER && newgrp docker
