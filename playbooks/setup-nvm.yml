@@ -1,8 +1,6 @@
 - name: "Setup NVM with Ansible"
   hosts: master
   remote_user: vagrant
-  vars:
-    docker_remote_user: vagrant
   become: true
   tasks:
     - name: Install nvm
