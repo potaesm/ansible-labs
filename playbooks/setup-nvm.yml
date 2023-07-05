@@ -1,9 +1,14 @@
 - name: "Setup NVM with Ansible"
   hosts: master
   remote_user: vagrant
-  become: true
   tasks:
+    - name: "Update"
+      become: true
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
     - name: Install nvm
+      become: false
       ansible.builtin.shell: >
         curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.39.3/install.sh | bash
       args:
