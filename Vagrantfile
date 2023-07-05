@@ -68,7 +68,6 @@ Vagrant.configure("2") do |config|
     master.vm.network "private_network", ip: "192.168.44.2"
 
     master.vm.provision "shell", inline: <<-SHELL
-      #!/bin/bash
       # sudo apt-get update
       # Set up the hostnames and configure the hostname for this machine
       echo '192.168.44.2 master' >> /etc/hosts
@@ -94,8 +93,6 @@ Vagrant.configure("2") do |config|
     # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
     # documentation for more information about their specific syntax and use.
     worker.vm.provision "shell", inline: <<-SHELL
-      #!/bin/bash
-      # sudo apt-get update
       # Set up the hostnames and configure the hostname for this machine
       echo '192.168.44.2 master' >> /etc/hosts
       echo '192.168.44.3 worker' >> /etc/hosts

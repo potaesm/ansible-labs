@@ -1,5 +1,5 @@
 [master]
-192.168.44.2
+master # 192.168.44.2
 
 [worker]
 192.168.44.3
@@ -12,5 +12,5 @@ worker
 ansible_pass=vagrant
 ansible_user=vagrant
 ansible_ssh_private_key_file=~/.ssh/id_rsa
-# ansible_ssh_pass=vagrant
-# ansible_ssh_user=vagrant
+ansible_ssh_pass=vagrant # brew install hudochenkov/sshpass/sshpass
+ansible_ssh_user=vagrant
